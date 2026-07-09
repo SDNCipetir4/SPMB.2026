@@ -167,11 +167,10 @@
             font-variant-numeric: tabular-nums; letter-spacing: 2px; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); 
         }
 
-        /* --- Mengubah Iframe menjadi Kontainer Div (Same Origin Style) --- */
+        /* --- Iframe Kembali Digunakan --- */
         #app-frame {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
             opacity: 0; transform: scale(1.03); transition: opacity 1s ease, transform 1s cubic-bezier(0.23, 1, 0.32, 1); z-index: 10;
-            overflow-y: auto; /* Memungkinkan scrolling lancar di dalam div */
         }
         #app-frame.loaded { opacity: 1; transform: scale(1); }
     </style>
@@ -202,11 +201,13 @@
         </div>
     </div>
 
-    <!-- Elemen Iframe di bawah ini telah sukses diubah menjadi Elemen Div Same Origin -->
-    <div id="app-frame"></div>
+    <iframe 
+        id="app-frame" 
+        src="https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec" 
+        allowfullscreen>
+    </iframe>
 
     <script>
-        // Tema Otomatis Berdasarkan Waktu
         function applyTimeBasedTheme() {
             const currentHour = new Date().getHours();
             if (currentHour >= 6 && currentHour < 18) {
@@ -221,7 +222,7 @@
         const progressText = document.getElementById('progress-text');
         const statusText = document.getElementById('loading-status');
         const loaderWrapper = document.getElementById('loader-wrapper');
-        const appContainer = document.getElementById('app-frame');
+        const iframe = document.getElementById('app-frame');
 
         let progress = 0;
 
@@ -238,60 +239,37 @@
             else { statusText.innerText = "Finalizing environment settings..."; }
         }
 
-        // Jalankan animasi progress loading tiruan awal
         const simulationInterval = setInterval(() => {
-            if (progress < 85) {
+            if (progress < 96) {
                 let increment = Math.random() * 3 + 1;
+                if (progress > 60) increment = Math.random() * 1.5;
+                if (progress > 85) increment = Math.random() * 0.3;
+
                 progress += increment;
+                if (progress > 96) progress = 96; 
+
                 updateProgress(progress);
                 updateStatus(progress);
             }
         }, 250);
 
-        // Mengambil kode HTML Google secara langsung (Same Origin Emulation via Proxy Bypass)
-        const targetUrl = "https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec";
-        const proxyBypassUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl);
+        iframe.addEventListener('load', function() {
+            clearInterval(simulationInterval);
+            updateProgress(100);
+            statusText.innerText = "System ready. Launching...";
+            
+            const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
+            
+            progressBar.style.background = successColor;
+            progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
 
-        fetch(proxyBypassUrl)
-            .then(response => {
-                if (!response.ok) throw new Error('Gagal memuat modul');
-                return response.text();
-            })
-            .then(htmlContent => {
-                // Selesaikan loading bar saat data sukses diambil
-                clearInterval(simulationInterval);
-                updateProgress(100);
-                statusText.innerText = "System ready. Launching...";
-                
-                // Masukkan kode HTML eksternal langsung ke dalam Div Same-Origin Anda
-                appContainer.innerHTML = htmlContent;
-                
-                // Memicu ulang tag <script> bawaan Google agar tetap aktif berjalan di browser Anda
-                appContainer.querySelectorAll('script').forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-
-                const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
-                progressBar.style.background = successColor;
-                progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
-
-                // Menghilangkan screen loading secara mulus
-                setTimeout(() => {
-                    loaderWrapper.style.opacity = '0';
-                    loaderWrapper.style.transform = 'scale(1.05)';
-                    loaderWrapper.style.visibility = 'hidden';
-                    appContainer.classList.add('loaded');
-                }, 1000); 
-            })
-            .catch(error => {
-                clearInterval(simulationInterval);
-                statusText.innerText = "Error: Terjadi kendala saat menyambungkan ke server aman.";
-                statusText.style.color = "#ff4d4d";
-                console.error(error);
-            });
+            setTimeout(() => {
+                loaderWrapper.style.opacity = '0';
+                loaderWrapper.style.transform = 'scale(1.05)';
+                loaderWrapper.style.visibility = 'hidden';
+                iframe.classList.add('loaded');
+            }, 1000); 
+        });
     </script>
 
 </body>
