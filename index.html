@@ -50,6 +50,7 @@
             transition: background-color 0.8s ease;
         }
 
+        /* --- Animasi Latar Belakang --- */
         .bg-animations { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; overflow: hidden; opacity: 0.8; }
         
         .bg-grid {
@@ -74,17 +75,17 @@
             75% { transform: translate(-4vw, 4vw) rotate(270deg) scale(0.9); }
         }
 
+        /* --- Wrapper Utama --- */
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, var(--bg-color-2) 0%, var(--bg-color-1) 100%);
             display: flex; justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s ease, visibility 0.8s;
         }
 
         .loader-content {
             width: 85%; max-width: 380px; 
             text-align: center; display: flex; flex-direction: column; align-items: center; z-index: 2;
-            animation: contentEntrance 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; opacity: 0;
+            animation: contentEntrance 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
 
         @keyframes contentEntrance {
@@ -92,6 +93,7 @@
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
+        /* --- Spinner --- */
         .loading-icon-container {
             position: relative; width: 80px; height: 80px; margin-bottom: 30px;
             display: flex; justify-content: center; align-items: center;
@@ -136,7 +138,7 @@
             height: 100%; width: 0%;
             background: linear-gradient(90deg, var(--color-aqua), var(--color-purple), var(--color-aqua));
             background-size: 200% 100%; border-radius: 20px; 
-            transition: width 0.2s linear;
+            transition: width 0.4s cubic-bezier(0.1, 0.5, 0.3, 1);
             position: relative; box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
             animation: gradientMove 2s linear infinite;
         }
@@ -151,6 +153,26 @@
         .progress-text { 
             margin-top: 15px; font-size: 1.1rem; font-weight: 700; color: var(--color-aqua); 
             font-variant-numeric: tabular-nums; letter-spacing: 2px; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); 
+        }
+
+        /* --- Tombol Launcher Baru (Anti-Blokir) --- */
+        .launch-btn {
+            display: none; margin-top: 25px; padding: 14px 32px;
+            font-size: 1rem; font-weight: 700; color: #ffffff;
+            background: linear-gradient(135deg, var(--color-aqua), var(--color-purple));
+            border: none; border-radius: 30px; cursor: pointer; text-decoration: none;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: buttonEntrance 0.5s ease forwards;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .launch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.8);
+        }
+        @keyframes buttonEntrance {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -177,6 +199,14 @@
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
             <div class="progress-text" id="progress-text">0%</div>
+
+            <!-- Tombol yang akan muncul otomatis setelah loading 100% -->
+            <a href="https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec" 
+               target="_blank" 
+               class="launch-btn" 
+               id="launch-button">
+               Masuk Aplikasi
+            </a>
         </div>
     </div>
 
@@ -194,7 +224,7 @@
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
         const statusText = document.getElementById('loading-status');
-        const loaderWrapper = document.getElementById('loader-wrapper');
+        const launchButton = document.getElementById('launch-button');
 
         let progress = 0;
 
@@ -211,25 +241,24 @@
             else { statusText.innerText = "Finalizing environment settings..."; }
         }
 
-        // Jalankan loading cepat 2 detik langsung redirect resmi
         const simulationInterval = setInterval(() => {
             if (progress < 100) {
-                progress += Math.random() * 15 + 5; 
+                progress += Math.random() * 8 + 2; 
                 if (progress > 100) progress = 100;
                 updateProgress(progress);
                 updateStatus(progress);
             } else {
                 clearInterval(simulationInterval);
-                statusText.innerText = "System ready. Launching...";
+                statusText.innerText = "System secure. Ready to launch!";
                 
                 const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
                 progressBar.style.background = successColor;
                 progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
 
+                // Munculkan tombol masuk aplikasi secara elegan
                 setTimeout(() => {
-                    // MENGALIHKAN LANGSUNG KELUAR DARI IFRAME AGAR BEBAS ERROR
-                    window.location.href = "https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec";
-                }, 800);
+                    launchButton.style.display = "inline-block";
+                }, 500);
             }
         }, 150);
     </script>
