@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPMB 2026 | SD Negeri Cipetir 4</title>
+    <title>SIBUK BOS V2.0</title>
+    
+    <link rel="icon" type="image/png" href="https://i.imgur.com/yDdTXEO.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- Variabel Warna --- */
@@ -15,7 +18,7 @@
             
             --color-aqua: #00f2fe;
             --color-purple: #4facfe;
-            --color-success: #00e676; /* Hijau Neon untuk Progress Bar */
+            --color-success: #00e676; 
             
             --border-spinner: rgba(255, 255, 255, 0.05);
             --bg-progress: rgba(255, 255, 255, 0.07);
@@ -73,7 +76,7 @@
             75% { transform: translate(-4vw, 4vw) rotate(270deg) scale(0.9); }
         }
 
-        /* --- Wrapper Utama (Responsif) --- */
+        /* --- Wrapper Utama --- */
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, var(--bg-color-2) 0%, var(--bg-color-1) 100%);
@@ -82,7 +85,7 @@
         }
 
         .loader-content {
-            width: 85%; max-width: 380px; /* Fleksibel untuk Mobile & Mentok di 380px untuk Desktop */
+            width: 85%; max-width: 380px; 
             text-align: center; display: flex; flex-direction: column; align-items: center; z-index: 2;
             animation: contentEntrance 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; opacity: 0;
         }
@@ -119,7 +122,7 @@
 
         /* --- Tipografi --- */
         .loading-title {
-            font-size: clamp(1.4rem, 4vw, 1.6rem); /* Responsif ukuran font */
+            font-size: clamp(1.4rem, 4vw, 1.6rem); 
             font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;
             background: linear-gradient(135deg, var(--text-primary) 30%, var(--color-aqua));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -153,7 +156,6 @@
         @keyframes gradientMove { 0% { background-position: 100% 0%; } 100% { background-position: -100% 0%; } }
         @keyframes shimmerEffect { 100% { left: 200%; } }
 
-        /* Animasi khusus saat bar mencapai 100% */
         @keyframes successPulse {
             0% { box-shadow: 0 0 15px var(--color-success); }
             50% { box-shadow: 0 0 35px var(--color-success); }
@@ -165,10 +167,11 @@
             font-variant-numeric: tabular-nums; letter-spacing: 2px; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); 
         }
 
-        /* --- Iframe Transisi Halus --- */
+        /* --- Mengubah Iframe menjadi Kontainer Div (Same Origin Style) --- */
         #app-frame {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             opacity: 0; transform: scale(1.03); transition: opacity 1s ease, transform 1s cubic-bezier(0.23, 1, 0.32, 1); z-index: 10;
+            overflow-y: auto; /* Memungkinkan scrolling lancar di dalam div */
         }
         #app-frame.loaded { opacity: 1; transform: scale(1); }
     </style>
@@ -199,14 +202,11 @@
         </div>
     </div>
 
-    <iframe 
-        id="app-frame" 
-    src="https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec" 
-        allowfullscreen>
-    </iframe>
+    <!-- Elemen Iframe di bawah ini telah sukses diubah menjadi Elemen Div Same Origin -->
+    <div id="app-frame"></div>
 
     <script>
-        // Tema Otomatis
+        // Tema Otomatis Berdasarkan Waktu
         function applyTimeBasedTheme() {
             const currentHour = new Date().getHours();
             if (currentHour >= 6 && currentHour < 18) {
@@ -221,7 +221,7 @@
         const progressText = document.getElementById('progress-text');
         const statusText = document.getElementById('loading-status');
         const loaderWrapper = document.getElementById('loader-wrapper');
-        const iframe = document.getElementById('app-frame');
+        const appContainer = document.getElementById('app-frame');
 
         let progress = 0;
 
@@ -238,43 +238,60 @@
             else { statusText.innerText = "Finalizing environment settings..."; }
         }
 
+        // Jalankan animasi progress loading tiruan awal
         const simulationInterval = setInterval(() => {
-            if (progress < 96) {
+            if (progress < 85) {
                 let increment = Math.random() * 3 + 1;
-                if (progress > 60) increment = Math.random() * 1.5;
-                if (progress > 85) increment = Math.random() * 0.3;
-
                 progress += increment;
-                if (progress > 96) progress = 96; 
-
                 updateProgress(progress);
                 updateStatus(progress);
             }
         }, 250);
 
-        // Saat Iframe selesai dimuat
-        iframe.addEventListener('load', function() {
-            clearInterval(simulationInterval);
-            updateProgress(100);
-            statusText.innerText = "System ready. Launching...";
-            
-            const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
-            
-            // HANYA MENGUBAH PROGRESS BAR MENJADI HIJAU
-            progressBar.style.background = successColor;
-            progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
+        // Mengambil kode HTML Google secara langsung (Same Origin Emulation via Proxy Bypass)
+        const targetUrl = "https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec";
+        const proxyBypassUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl);
 
-            // Jeda sejenak lalu lakukan transisi iframe
-            setTimeout(() => {
-                // Efek fade-out mulus pada layar loading
-                loaderWrapper.style.opacity = '0';
-                loaderWrapper.style.transform = 'scale(1.05)';
-                loaderWrapper.style.visibility = 'hidden';
+        fetch(proxyBypassUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal memuat modul');
+                return response.text();
+            })
+            .then(htmlContent => {
+                // Selesaikan loading bar saat data sukses diambil
+                clearInterval(simulationInterval);
+                updateProgress(100);
+                statusText.innerText = "System ready. Launching...";
                 
-                // Munculkan iframe web app
-                iframe.classList.add('loaded');
-            }, 1000); // 1 detik jeda
-        });
+                // Masukkan kode HTML eksternal langsung ke dalam Div Same-Origin Anda
+                appContainer.innerHTML = htmlContent;
+                
+                // Memicu ulang tag <script> bawaan Google agar tetap aktif berjalan di browser Anda
+                appContainer.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
+                progressBar.style.background = successColor;
+                progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
+
+                // Menghilangkan screen loading secara mulus
+                setTimeout(() => {
+                    loaderWrapper.style.opacity = '0';
+                    loaderWrapper.style.transform = 'scale(1.05)';
+                    loaderWrapper.style.visibility = 'hidden';
+                    appContainer.classList.add('loaded');
+                }, 1000); 
+            })
+            .catch(error => {
+                clearInterval(simulationInterval);
+                statusText.innerText = "Error: Terjadi kendala saat menyambungkan ke server aman.";
+                statusText.style.color = "#ff4d4d";
+                console.error(error);
+            });
     </script>
 
 </body>
