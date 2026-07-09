@@ -42,7 +42,6 @@
             --grid-color: rgba(0, 0, 0, 0.03);
         }
 
-        /* --- Reset & Layout Dasar --- */
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         
         body, html {
@@ -51,7 +50,6 @@
             transition: background-color 0.8s ease;
         }
 
-        /* --- Animasi Latar Belakang --- */
         .bg-animations { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; overflow: hidden; opacity: 0.8; }
         
         .bg-grid {
@@ -76,7 +74,6 @@
             75% { transform: translate(-4vw, 4vw) rotate(270deg) scale(0.9); }
         }
 
-        /* --- Wrapper Utama --- */
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, var(--bg-color-2) 0%, var(--bg-color-1) 100%);
@@ -95,7 +92,6 @@
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        /* --- Spinner Cincin Ganda --- */
         .loading-icon-container {
             position: relative; width: 80px; height: 80px; margin-bottom: 30px;
             display: flex; justify-content: center; align-items: center;
@@ -120,7 +116,6 @@
         @keyframes spinReverse { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
         @keyframes pulseCenter { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.5); opacity: 1; } }
 
-        /* --- Tipografi --- */
         .loading-title {
             font-size: clamp(1.4rem, 4vw, 1.6rem); 
             font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;
@@ -132,7 +127,6 @@
             color: var(--text-secondary); margin-bottom: 35px; min-height: 20px; font-weight: 500; 
         }
 
-        /* --- Progres Bar --- */
         .progress-container {
             width: 100%; height: 8px; background-color: var(--bg-progress); border-radius: 20px;
             overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); backdrop-filter: blur(5px);
@@ -142,20 +136,12 @@
             height: 100%; width: 0%;
             background: linear-gradient(90deg, var(--color-aqua), var(--color-purple), var(--color-aqua));
             background-size: 200% 100%; border-radius: 20px; 
-            transition: width 0.4s cubic-bezier(0.1, 0.5, 0.3, 1), background 0.5s ease, box-shadow 0.5s ease;
+            transition: width 0.2s linear;
             position: relative; box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
             animation: gradientMove 2s linear infinite;
         }
 
-        .progress-bar::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-            animation: shimmerEffect 1.5s infinite;
-        }
-
         @keyframes gradientMove { 0% { background-position: 100% 0%; } 100% { background-position: -100% 0%; } }
-        @keyframes shimmerEffect { 100% { left: 200%; } }
-
         @keyframes successPulse {
             0% { box-shadow: 0 0 15px var(--color-success); }
             50% { box-shadow: 0 0 35px var(--color-success); }
@@ -166,13 +152,6 @@
             margin-top: 15px; font-size: 1.1rem; font-weight: 700; color: var(--color-aqua); 
             font-variant-numeric: tabular-nums; letter-spacing: 2px; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); 
         }
-
-        /* --- Iframe Kembali Digunakan --- */
-        #app-frame {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-            opacity: 0; transform: scale(1.03); transition: opacity 1s ease, transform 1s cubic-bezier(0.23, 1, 0.32, 1); z-index: 10;
-        }
-        #app-frame.loaded { opacity: 1; transform: scale(1); }
     </style>
 </head>
 <body>
@@ -201,12 +180,6 @@
         </div>
     </div>
 
-    <iframe 
-        id="app-frame" 
-        src="https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec" 
-        allowfullscreen>
-    </iframe>
-
     <script>
         function applyTimeBasedTheme() {
             const currentHour = new Date().getHours();
@@ -222,7 +195,6 @@
         const progressText = document.getElementById('progress-text');
         const statusText = document.getElementById('loading-status');
         const loaderWrapper = document.getElementById('loader-wrapper');
-        const iframe = document.getElementById('app-frame');
 
         let progress = 0;
 
@@ -239,37 +211,27 @@
             else { statusText.innerText = "Finalizing environment settings..."; }
         }
 
+        // Jalankan loading cepat 2 detik langsung redirect resmi
         const simulationInterval = setInterval(() => {
-            if (progress < 96) {
-                let increment = Math.random() * 3 + 1;
-                if (progress > 60) increment = Math.random() * 1.5;
-                if (progress > 85) increment = Math.random() * 0.3;
-
-                progress += increment;
-                if (progress > 96) progress = 96; 
-
+            if (progress < 100) {
+                progress += Math.random() * 15 + 5; 
+                if (progress > 100) progress = 100;
                 updateProgress(progress);
                 updateStatus(progress);
+            } else {
+                clearInterval(simulationInterval);
+                statusText.innerText = "System ready. Launching...";
+                
+                const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
+                progressBar.style.background = successColor;
+                progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
+
+                setTimeout(() => {
+                    // MENGALIHKAN LANGSUNG KELUAR DARI IFRAME AGAR BEBAS ERROR
+                    window.location.href = "https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec";
+                }, 800);
             }
-        }, 250);
-
-        iframe.addEventListener('load', function() {
-            clearInterval(simulationInterval);
-            updateProgress(100);
-            statusText.innerText = "System ready. Launching...";
-            
-            const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
-            
-            progressBar.style.background = successColor;
-            progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
-
-            setTimeout(() => {
-                loaderWrapper.style.opacity = '0';
-                loaderWrapper.style.transform = 'scale(1.05)';
-                loaderWrapper.style.visibility = 'hidden';
-                iframe.classList.add('loaded');
-            }, 1000); 
-        });
+        }, 150);
     </script>
 
 </body>
