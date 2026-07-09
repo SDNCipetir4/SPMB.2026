@@ -50,7 +50,7 @@
             transition: background-color 0.8s ease;
         }
 
-        /* --- Animasi Latar Belakang --- */
+        /* --- Efek Latar Belakang --- */
         .bg-animations { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; overflow: hidden; opacity: 0.8; }
         
         .bg-grid {
@@ -75,25 +75,20 @@
             75% { transform: translate(-4vw, 4vw) rotate(270deg) scale(0.9); }
         }
 
-        /* --- Wrapper Utama --- */
+        /* --- Layar Loading Utama --- */
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, var(--bg-color-2) 0%, var(--bg-color-1) 100%);
             display: flex; justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
         }
 
         .loader-content {
             width: 85%; max-width: 380px; 
             text-align: center; display: flex; flex-direction: column; align-items: center; z-index: 2;
-            animation: contentEntrance 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
 
-        @keyframes contentEntrance {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(4px); }
-            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-        }
-
-        /* --- Spinner --- */
+        /* --- Animasi Spinner --- */
         .loading-icon-container {
             position: relative; width: 80px; height: 80px; margin-bottom: 30px;
             display: flex; justify-content: center; align-items: center;
@@ -155,7 +150,7 @@
             font-variant-numeric: tabular-nums; letter-spacing: 2px; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); 
         }
 
-        /* --- Tombol Launcher Baru (Anti-Blokir) --- */
+        /* --- Tombol Peluncur Aplikasi --- */
         .launch-btn {
             display: none; margin-top: 25px; padding: 14px 32px;
             font-size: 1rem; font-weight: 700; color: #ffffff;
@@ -163,27 +158,35 @@
             border: none; border-radius: 30px; cursor: pointer; text-decoration: none;
             box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: buttonEntrance 0.5s ease forwards;
             letter-spacing: 1px; text-transform: uppercase;
+            animation: buttonEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         .launch-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 30px rgba(0, 242, 254, 0.8);
         }
         @keyframes buttonEntrance {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Frame Aplikasi Utama (Tetap Inline di Vercel) --- */
+        #app-frame {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+            z-index: 10; display: none; background-color: var(--bg-color-1);
         }
     </style>
 </head>
 <body>
 
+    <!-- Animasi Latar Belakang -->
     <div class="bg-animations">
         <div class="bg-grid"></div>
         <div class="shape"></div>
         <div class="shape"></div>
     </div>
 
+    <!-- Screen Loader Panel -->
     <div id="loader-wrapper">
         <div class="loader-content">
             <div class="loading-icon-container">
@@ -192,7 +195,7 @@
                 <div class="loading-icon-center"></div>
             </div>
             
-            <h2 class="loading-title">Initializing</h2>
+            <h2 class="loading-title">Initializing System</h2>
             <p class="loading-status" id="loading-status">Connecting to secure server...</p>
             
             <div class="progress-container">
@@ -200,17 +203,20 @@
             </div>
             <div class="progress-text" id="progress-text">0%</div>
 
-            <!-- Tombol yang akan muncul otomatis setelah loading 100% -->
-            <a href="https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec" 
-               target="_blank" 
-               class="launch-btn" 
-               id="launch-button">
-               Masuk Aplikasi
-            </a>
+            <!-- Tombol Pemicu Inline (Satu Tab Browser) -->
+            <button class="launch-btn" id="launch-button">Masuk Aplikasi</button>
         </div>
     </div>
 
+    <!-- Window Target Utama (Dinamis Membaca Seluruh Parameter URL) -->
+    <iframe 
+        id="app-frame" 
+        src="" 
+        allowfullscreen>
+    </iframe>
+
     <script>
+        // Pengaturan Tema Berdasarkan Waktu Otomatis
         function applyTimeBasedTheme() {
             const currentHour = new Date().getHours();
             if (currentHour >= 6 && currentHour < 18) {
@@ -225,6 +231,15 @@
         const progressText = document.getElementById('progress-text');
         const statusText = document.getElementById('loading-status');
         const launchButton = document.getElementById('launch-button');
+        const loaderWrapper = document.getElementById('loader-wrapper');
+        const iframe = document.getElementById('app-frame');
+
+        // AMBIL PARAMETER URL (Mendukung Otomatisasi Sistem Routing Dari Backend doGet Anda)
+        const currentQueryString = window.location.search; 
+        const baseGasUrl = "https://script.google.com/macros/s/AKfycbwQxP9NPo_SfdP3vehpNIl2KXCwKKSuXpIXHEp7RWMajZq56AUrK5W9MH6TuJXitvHc/exec";
+        
+        // Gabungkan URL dasar GAS dengan query yang dilempar oleh Vercel (seperti ?page=admin atau ?sessionId=...)
+        iframe.src = baseGasUrl + currentQueryString;
 
         let progress = 0;
 
@@ -235,32 +250,40 @@
         }
 
         function updateStatus(value) {
-            if (value < 20) { statusText.innerText = "Establishing secure handshake..."; } 
-            else if (value < 50) { statusText.innerText = "Pulling application core modules..."; } 
-            else if (value < 80) { statusText.innerText = "Rendering user interface components..."; } 
-            else { statusText.innerText = "Finalizing environment settings..."; }
+            if (value < 20) { statusText.innerText = "Securing network gateway..."; } 
+            else if (value < 50) { statusText.innerText = "Synchronizing database structure..."; } 
+            else if (value < 80) { statusText.innerText = "Injecting server-side configuration..."; } 
+            else { statusText.innerText = "System parameters validated..."; }
         }
 
+        // Simulasi Kecepatan Loading Bar Proposional
         const simulationInterval = setInterval(() => {
             if (progress < 100) {
-                progress += Math.random() * 8 + 2; 
+                progress += Math.random() * 10 + 2; 
                 if (progress > 100) progress = 100;
                 updateProgress(progress);
                 updateStatus(progress);
             } else {
                 clearInterval(simulationInterval);
-                statusText.innerText = "System secure. Ready to launch!";
+                statusText.innerText = "Authentication successful. Ready.";
                 
                 const successColor = getComputedStyle(document.documentElement).getPropertyValue('--color-success').trim();
                 progressBar.style.background = successColor;
                 progressBar.style.animation = 'successPulse 1.5s ease-out infinite';
 
-                // Munculkan tombol masuk aplikasi secara elegan
+                // Tampilkan tombol akses secara halus
                 setTimeout(() => {
                     launchButton.style.display = "inline-block";
-                }, 500);
+                }, 400);
             }
         }, 150);
+
+        // TRIGGER UTAMA: Membuka Aplikasi Di Dalam Vercel Menggunakan Aturan Inline Reveal 
+        launchButton.addEventListener('click', function() {
+            loaderWrapper.style.opacity = '0';
+            loaderWrapper.style.visibility = 'hidden';
+            iframe.style.display = 'block'; 
+        });
     </script>
 
 </body>
